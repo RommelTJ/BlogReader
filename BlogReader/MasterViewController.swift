@@ -26,7 +26,17 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
+        let urlPath = "https://www.googleapis.com/blogger/v3/blogs/10861780/posts?key=REDACTED"
+        let url = NSURL(string: urlPath)
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithURL(url!, completionHandler: { (data, response, error) -> Void in
+            if error != nil {
+                NSLog("ERROR")
+            } else {
+                let jsonResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers, error: nil) as NSDictionary
+            }
+        })
+        task.resume()
         
         if let split = self.splitViewController {
             let controllers = split.viewControllers

@@ -22,7 +22,9 @@ class DetailViewController: UIViewController {
 
     func configureView() {
         // Update the user interface for the detail item.
-        
+        if let label = self.detailDescriptionLabel {
+            label.text = "Item Tapped"
+        }
     }
 
     override func viewDidLoad() {
