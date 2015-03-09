@@ -11,6 +11,7 @@ import UIKit
 class DetailViewController: UIViewController {
 
     @IBOutlet weak var detailDescriptionLabel: UILabel!
+    @IBOutlet weak var myWebView: UIWebView!
 
 
     var detailItem: AnyObject? {
@@ -22,9 +23,7 @@ class DetailViewController: UIViewController {
 
     func configureView() {
         // Update the user interface for the detail item.
-        if let label = self.detailDescriptionLabel {
-            label.text = "Item Tapped"
-        }
+        myWebView.loadHTMLString(activeItem, baseURL: nil)
     }
 
     override func viewDidLoad() {
