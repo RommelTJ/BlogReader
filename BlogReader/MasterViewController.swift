@@ -28,17 +28,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         var appDelegate:AppDelegate = UIApplication.sharedApplication().delegate as AppDelegate
         var context:NSManagedObjectContext = appDelegate.managedObjectContext!
-        var newBlogItem = NSEntityDescription.insertNewObjectForEntityForName("BlogItems", inManagedObjectContext: context) as NSManagedObject
-        newBlogItem.setValue("My Title", forKey: "title")
-        newBlogItem.setValue("Rommel", forKey: "author")
-        newBlogItem.setValue("My Content", forKey: "content")
-        newBlogItem.setValue("2015-03-08", forKey: "publishedDate")
-        context.save(nil)
-        
-        var request = NSFetchRequest(entityName: "BlogItems")
-        request.returnsObjectsAsFaults = false
-        var results = context.executeFetchRequest(request, error: nil)
-        println(results!)
         
         let urlPath = "https://www.googleapis.com/blogger/v3/blogs/10861780/posts?key=REDACTED"
         let url = NSURL(string: urlPath)
@@ -47,20 +36,37 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             if error != nil {
                 NSLog("ERROR")
             } else {
-                let jsonResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers, error: nil) as NSDictionary
+                
+                var request = NSFetchRequest(entityName: "BlogItems")
+                request.returnsObjectsAsFaults = false
+                var results = context.executeFetchRequest(request, error: nil)
+                for result in results! {
+                    context.deleteObject(result as NSManagedObject)
+                    context.save(nil)
+                }
+                
+                let jsonResult:NSDictionary = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers, error: nil) as NSDictionary
                 
                 var items = [[String:String]()]
                 var item:AnyObject
                 var authorDictionary:AnyObject
+                var newBlogItem:NSManagedObject
                 for var i=0; i<jsonResult["items"]!.count; i++ {
                     items.append([String:String]())
-                    item = jsonResult["items"]![0] as NSDictionary
-                    items[i]["title"] = item["title"] as NSString
+                    item = jsonResult["items"]![i] as NSDictionary
                     authorDictionary = item["author"] as NSDictionary
-                    items[i]["author"] = authorDictionary["displayName"] as NSString
-                    items[i]["content"] = item["content"] as NSString
-                    items[i]["publishedDate"] = item["published"] as NSString
+                    
+                    newBlogItem = NSEntityDescription.insertNewObjectForEntityForName("BlogItems", inManagedObjectContext: context) as NSManagedObject
+                    newBlogItem.setValue(item["title"] as NSString, forKey: "title")
+                    newBlogItem.setValue(authorDictionary["displayName"] as NSString, forKey: "author")
+                    newBlogItem.setValue(item["content"] as NSString, forKey: "content")
+                    newBlogItem.setValue(item["published"] as NSString, forKey: "publishedDate")
+                    context.save(nil)
                 }
+                request = NSFetchRequest(entityName: "BlogItems")
+                request.returnsObjectsAsFaults = false
+                results = context.executeFetchRequest(request, error: nil)
+                println(results!)
             }
         })
         task.resume()
